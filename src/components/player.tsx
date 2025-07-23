@@ -9,6 +9,7 @@ import {
   SkipBack,
   SkipForward,
   Volume2,
+  VolumeX,
   ListMusic,
 } from 'lucide-react';
 import { Slider } from './ui/slider';
@@ -33,12 +34,19 @@ export default function Player() {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolume] = useState(0.5);
+  const [lastVolume, setLastVolume] = useState(0.5);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const setAudioData = () => setDuration(audio.duration);
+    const setAudioData = () => {
+      setDuration(audio.duration);
+      if (isPlaying) {
+        audio.play().catch(e => console.error("Error playing audio:", e));
+      }
+    };
     const setAudioTime = () => {
       setCurrentTime(audio.currentTime);
       setProgress(audio.currentTime / audio.duration * 100);
@@ -47,35 +55,54 @@ export default function Player() {
     audio.addEventListener('loadeddata', setAudioData);
     audio.addEventListener('timeupdate', setAudioTime);
     audio.addEventListener('ended', playNext);
+    
+    if (currentSong) {
+      if (audio.src !== currentSong.url) {
+        audio.src = currentSong.url;
+        audio.load();
+      }
+    }
+
+    if (isPlaying) {
+        audio.play().catch(e => console.error("Error playing audio:", e));
+    } else {
+        audio.pause();
+    }
 
     return () => {
       audio.removeEventListener('loadeddata', setAudioData);
       audio.removeEventListener('timeupdate', setAudioTime);
       audio.removeEventListener('ended', playNext);
     };
-  }, [playNext]);
-
+  }, [currentSong, isPlaying, playNext]);
+  
   useEffect(() => {
-    const audio = audioRef.current;
-    if (audio && currentSong) {
-      if (audio.src !== currentSong.url) {
-        audio.src = currentSong.url;
-        audio.load();
-      }
-      
-      if (isPlaying) {
-        audio.play().catch(e => console.error("Error playing audio:", e));
-      } else {
-        audio.pause();
-      }
+    if (audioRef.current) {
+        audioRef.current.volume = volume;
     }
-  }, [currentSong, isPlaying]);
+  }, [volume]);
+
 
   const handleProgressChange = (value: number[]) => {
     if (audioRef.current && duration > 0) {
         audioRef.current.currentTime = (value[0] / 100) * duration;
     }
   }
+
+  const handleVolumeChange = (value: number[]) => {
+    const newVolume = value[0] / 100;
+    setVolume(newVolume);
+    setLastVolume(newVolume);
+  }
+  
+  const toggleMute = () => {
+    if (volume > 0) {
+      setLastVolume(volume);
+      setVolume(0);
+    } else {
+      setVolume(lastVolume > 0 ? lastVolume : 0.5);
+    }
+  };
 
   const formatTime = (time: number) => {
     if (isNaN(time)) return "0:00";
@@ -194,8 +221,10 @@ export default function Player() {
             </SheetContent>
           </Sheet>
           <div className="flex items-center gap-2">
-            <Volume2 className="h-5 w-5" />
-            <Slider defaultValue={[50]} max={100} step={1} className="w-24" />
+             <Button variant="ghost" size="icon" onClick={toggleMute}>
+                {volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+             </Button>
+            <Slider value={[volume * 100]} max={100} step={1} className="w-24" onValueChange={handleVolumeChange} />
           </div>
         </div>
       </div>
