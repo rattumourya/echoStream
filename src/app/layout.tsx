@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { MusicPlayerProvider } from '@/context/music-player-context';
-import AppSidebar from '@/components/app-sidebar';
 import Player from '@/components/player';
 import AppHeader from '@/components/app-header';
+import SidebarLoader from '@/components/sidebar-loader';
+
 
 export const metadata: Metadata = {
   title: 'EchoStream',
@@ -27,7 +28,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <MusicPlayerProvider>
           <div className="relative flex h-dvh overflow-hidden">
-            <AppSidebar />
+            <SidebarLoader />
             <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
               <AppHeader />
               <main className="pb-24">
