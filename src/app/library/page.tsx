@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { playlists, albums } from '@/lib/data';
+import { playlists as initialPlaylists, albums } from '@/lib/data';
 import SongCard from '@/components/song-card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -24,6 +24,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import type { Playlist } from '@/types';
 
 const playlistFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters.' }),
@@ -34,6 +35,7 @@ type PlaylistFormValues = z.infer<typeof playlistFormSchema>;
 
 export default function LibraryPage() {
   const [open, setOpen] = useState(false);
+  const [playlists, setPlaylists] = useState<Playlist[]>(initialPlaylists);
   const { toast } = useToast();
   const form = useForm<PlaylistFormValues>({
     resolver: zodResolver(playlistFormSchema),
@@ -44,7 +46,13 @@ export default function LibraryPage() {
   });
 
   function onSubmit(data: PlaylistFormValues) {
-    console.log('New Playlist:', data);
+    const newPlaylist: Playlist = {
+      id: `playlist-${Date.now()}`,
+      title: data.title,
+      description: data.description || '',
+      coverArt: 'https://placehold.co/300x300.png',
+    };
+    setPlaylists((prevPlaylists) => [newPlaylist, ...prevPlaylists]);
     toast({
       title: 'Playlist Created!',
       description: `"${data.title}" has been added to your library.`,
