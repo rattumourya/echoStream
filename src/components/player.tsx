@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Slider } from './ui/slider';
 import { Button } from './ui/button';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -29,34 +29,63 @@ export default function Player() {
     queue,
     playSong,
   } = useMusicPlayer();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isPlaying && currentSong) {
-      const durationParts = currentSong.duration.split(':');
-      if (durationParts.length === 2) {
-        const durationSeconds = parseInt(durationParts[0]) * 60 + parseInt(durationParts[1]);
-        if (!isNaN(durationSeconds) && durationSeconds > 0) {
-            timer = setInterval(() => {
-                setProgress(prev => {
-                    const nextProgress = prev + (100 / durationSeconds);
-                    if (nextProgress >= 100) {
-                        playNext();
-                        return 0;
-                    }
-                    return nextProgress;
-                });
-            }, 1000);
+    if (audioRef.current && currentSong) {
+        if (isPlaying) {
+            audioRef.current.play().catch(e => console.error("Error playing audio:", e));
+        } else {
+            audioRef.current.pause();
         }
-      }
     }
-    return () => clearInterval(timer);
-  }, [isPlaying, currentSong, playNext]);
+  }, [isPlaying, currentSong]);
 
   useEffect(() => {
-    setProgress(0);
+    const audio = audioRef.current;
+    if (audio) {
+        const setAudioData = () => {
+            setDuration(audio.duration);
+        }
+        const setAudioTime = () => {
+            setCurrentTime(audio.currentTime);
+            setProgress(audio.currentTime / audio.duration * 100);
+        }
+
+        audio.addEventListener('loadeddata', setAudioData);
+        audio.addEventListener('timeupdate', setAudioTime);
+        audio.addEventListener('ended', playNext);
+
+        return () => {
+            audio.removeEventListener('loadeddata', setAudioData);
+            audio.removeEventListener('timeupdate', setAudioTime);
+            audio.removeEventListener('ended', playNext);
+        }
+    }
+  }, [playNext]);
+
+  useEffect(() => {
+    if (audioRef.current && currentSong?.url) {
+      audioRef.current.src = currentSong.url;
+      audioRef.current.load();
+    }
   }, [currentSong]);
+
+  const handleProgressChange = (value: number[]) => {
+    if (audioRef.current) {
+        audioRef.current.currentTime = (value[0] / 100) * duration;
+    }
+  }
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
 
   if (!currentSong) {
     return (
@@ -70,6 +99,7 @@ export default function Player() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 h-24 border-t bg-background/95 backdrop-blur-sm">
+      <audio ref={audioRef} />
       <div className="grid h-full grid-cols-3 items-center px-4 md:px-6">
         <div className="flex items-center gap-4">
           <Image
@@ -108,9 +138,9 @@ export default function Player() {
             </Button>
           </div>
           <div className="w-full max-w-sm flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">0:00</span>
-            <Slider defaultValue={[0]} value={[progress]} max={100} step={1} className="w-full" />
-            <span className="text-xs text-muted-foreground">{currentSong.duration}</span>
+            <span className="text-xs text-muted-foreground">{formatTime(currentTime)}</span>
+            <Slider value={[progress]} max={100} step={1} className="w-full" onValueChange={handleProgressChange} />
+            <span className="text-xs text-muted-foreground">{formatTime(duration)}</span>
           </div>
         </div>
 

@@ -5,6 +5,7 @@ export interface Song {
   album: string;
   duration: string;
   albumArt: string;
+  url: string;
 }
 
 export interface Artist {
