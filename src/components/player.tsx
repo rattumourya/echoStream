@@ -35,52 +35,50 @@ export default function Player() {
   const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
-    if (audioRef.current && currentSong) {
-        if (isPlaying) {
-            audioRef.current.play().catch(e => console.error("Error playing audio:", e));
-        } else {
-            audioRef.current.pause();
-        }
-    }
-  }, [isPlaying, currentSong]);
-
-  useEffect(() => {
     const audio = audioRef.current;
-    if (audio) {
-        const setAudioData = () => {
-            setDuration(audio.duration);
-        }
-        const setAudioTime = () => {
-            setCurrentTime(audio.currentTime);
-            setProgress(audio.currentTime / audio.duration * 100);
-        }
+    if (!audio) return;
 
-        audio.addEventListener('loadeddata', setAudioData);
-        audio.addEventListener('timeupdate', setAudioTime);
-        audio.addEventListener('ended', playNext);
+    const setAudioData = () => setDuration(audio.duration);
+    const setAudioTime = () => {
+      setCurrentTime(audio.currentTime);
+      setProgress(audio.currentTime / audio.duration * 100);
+    };
 
-        return () => {
-            audio.removeEventListener('loadeddata', setAudioData);
-            audio.removeEventListener('timeupdate', setAudioTime);
-            audio.removeEventListener('ended', playNext);
-        }
-    }
+    audio.addEventListener('loadeddata', setAudioData);
+    audio.addEventListener('timeupdate', setAudioTime);
+    audio.addEventListener('ended', playNext);
+
+    return () => {
+      audio.removeEventListener('loadeddata', setAudioData);
+      audio.removeEventListener('timeupdate', setAudioTime);
+      audio.removeEventListener('ended', playNext);
+    };
   }, [playNext]);
 
   useEffect(() => {
-    if (audioRef.current && currentSong?.url) {
-      audioRef.current.src = currentSong.url;
-      audioRef.current.load();
+    const audio = audioRef.current;
+    if (audio && currentSong) {
+      if (audio.src !== currentSong.url) {
+        audio.src = currentSong.url;
+        audio.load();
+      }
+      
+      if (isPlaying) {
+        audio.play().catch(e => console.error("Error playing audio:", e));
+      } else {
+        audio.pause();
+      }
     }
-  }, [currentSong]);
+  }, [currentSong, isPlaying]);
 
   const handleProgressChange = (value: number[]) => {
-    if (audioRef.current) {
+    if (audioRef.current && duration > 0) {
         audioRef.current.currentTime = (value[0] / 100) * duration;
     }
   }
 
   const formatTime = (time: number) => {
+    if (isNaN(time)) return "0:00";
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -139,7 +137,7 @@ export default function Player() {
           </div>
           <div className="w-full max-w-sm flex items-center gap-2">
             <span className="text-xs text-muted-foreground">{formatTime(currentTime)}</span>
-            <Slider value={[progress]} max={100} step={1} className="w-full" onValueChange={handleProgressChange} />
+            <Slider value={[progress || 0]} max={100} step={1} className="w-full" onValueChange={handleProgressChange} />
             <span className="text-xs text-muted-foreground">{formatTime(duration)}</span>
           </div>
         </div>
