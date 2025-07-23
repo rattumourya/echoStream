@@ -65,35 +65,37 @@ export default function AppSidebar() {
           </Link>
         ))}
       </div>
-      <Separator className="my-2" />
-      <div className="flex-1 min-h-0">
-        {isClient && (
-            <ScrollArea className="h-full">
-                <div className="flex flex-col gap-y-2 px-2 py-2">
-                    <p className="px-2 py-1 text-xs font-semibold text-muted-foreground">Playlists</p>
-                    {loading ? (
-                    <div className="space-y-2 px-2">
-                        {Array.from({length: 5}).map((_, i) => <Skeleton key={i} className="h-7 w-full" />)}
-                    </div>
-                    ) : (
-                    playlists.map((playlist) => (
-                        <Link
-                        key={playlist.id}
-                        href={`/playlist/${playlist.id}`}
-                        className={cn(
-                            'flex items-center gap-x-3 rounded-md p-2 text-sm font-medium text-muted-foreground transition hover:text-foreground',
-                            pathname === `/playlist/${playlist.id}` && 'text-foreground'
-                        )}
-                        >
-                        <Music className="h-5 w-5" />
-                        <span className="truncate">{playlist.title}</span>
-                        </Link>
-                    ))
-                    )}
-                </div>
-            </ScrollArea>
-        )}
-      </div>
+      {isClient && (
+        <>
+          <Separator className="my-2" />
+          <div className="flex-1 min-h-0">
+              <ScrollArea className="h-full">
+                  <div className="flex flex-col gap-y-2 px-2 py-2">
+                      <p className="px-2 py-1 text-xs font-semibold text-muted-foreground">Playlists</p>
+                      {loading ? (
+                      <div className="space-y-2 px-2">
+                          {Array.from({length: 5}).map((_, i) => <Skeleton key={i} className="h-7 w-full" />)}
+                      </div>
+                      ) : (
+                      playlists.map((playlist) => (
+                          <Link
+                          key={playlist.id}
+                          href={`/playlist/${playlist.id}`}
+                          className={cn(
+                              'flex items-center gap-x-3 rounded-md p-2 text-sm font-medium text-muted-foreground transition hover:text-foreground',
+                              pathname === `/playlist/${playlist.id}` && 'text-foreground'
+                          )}
+                          >
+                          <Music className="h-5 w-5" />
+                          <span className="truncate">{playlist.title}</span>
+                          </Link>
+                      ))
+                      )}
+                  </div>
+              </ScrollArea>
+          </div>
+        </>
+      )}
     </aside>
   );
 }
