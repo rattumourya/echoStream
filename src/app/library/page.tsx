@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { playlists as initialPlaylists, albums } from '@/lib/data';
+import { getPlaylists, getAlbums } from '@/lib/data';
 import SongCard from '@/components/song-card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -24,7 +24,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import type { Playlist } from '@/types';
+import type { Playlist, Album } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const playlistFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters.' }),
@@ -35,7 +38,9 @@ type PlaylistFormValues = z.infer<typeof playlistFormSchema>;
 
 export default function LibraryPage() {
   const [open, setOpen] = useState(false);
-  const [playlists, setPlaylists] = useState<Playlist[]>(initialPlaylists);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [albums, setAlbums] = useState<Album[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const form = useForm<PlaylistFormValues>({
     resolver: zodResolver(playlistFormSchema),
@@ -44,21 +49,59 @@ export default function LibraryPage() {
       description: '',
     },
   });
+  
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [playlistData, albumData] = await Promise.all([
+            getPlaylists(),
+            getAlbums(),
+        ]);
+        setPlaylists(playlistData);
+        setAlbums(albumData);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
-  function onSubmit(data: PlaylistFormValues) {
-    const newPlaylist: Playlist = {
-      id: `playlist-${Date.now()}`,
-      title: data.title,
-      description: data.description || '',
-      coverArt: 'https://placehold.co/600x600.png',
-    };
-    setPlaylists((prevPlaylists) => [newPlaylist, ...prevPlaylists]);
-    toast({
-      title: 'Playlist Created!',
-      description: `"${data.title}" has been added to your library.`,
-    });
-    setOpen(false);
-    form.reset();
+  async function onSubmit(data: PlaylistFormValues) {
+    try {
+      const newPlaylistData = {
+        title: data.title,
+        description: data.description || '',
+        coverArt: 'https://placehold.co/600x600.png',
+        'data-ai-hint': 'abstract gradient'
+      };
+      
+      const docRef = await addDoc(collection(db, "playlists"), newPlaylistData);
+      
+      const newPlaylist: Playlist = {
+        id: docRef.id,
+        ...newPlaylistData
+      };
+      
+      setPlaylists((prevPlaylists) => [newPlaylist, ...prevPlaylists]);
+      
+      toast({
+        title: 'Playlist Created!',
+        description: `"${data.title}" has been added to your library.`,
+      });
+      
+    } catch (e) {
+      console.error("Error adding document: ", e);
+      toast({
+        title: 'Error',
+        description: 'Failed to create playlist. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setOpen(false);
+      form.reset();
+    }
   }
   
   return (
@@ -128,18 +171,42 @@ export default function LibraryPage() {
           <TabsTrigger value="albums">Albums</TabsTrigger>
         </TabsList>
         <TabsContent value="playlists" className="mt-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {playlists.map((playlist) => (
-              <SongCard key={playlist.id} item={playlist} type="playlist" aspectRatio="square" />
-            ))}
-          </div>
+          {loading ? (
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                        <Skeleton className="h-auto aspect-square rounded-lg" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </div>
+                ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {playlists.map((playlist) => (
+                <SongCard key={playlist.id} item={playlist} type="playlist" aspectRatio="square" />
+              ))}
+            </div>
+          )}
         </TabsContent>
         <TabsContent value="albums" className="mt-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {albums.map((album) => (
-              <SongCard key={album.id} item={album} type="album" aspectRatio="square" />
-            ))}
-          </div>
+           {loading ? (
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                        <Skeleton className="h-auto aspect-square rounded-lg" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </div>
+                ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {albums.map((album) => (
+                <SongCard key={album.id} item={album} type="album" aspectRatio="square" />
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

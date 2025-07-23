@@ -1,33 +1,58 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search as SearchIcon } from 'lucide-react';
-import { songs, artists, albums } from '@/lib/data';
+import { getSongs, getArtists, getAlbums } from '@/lib/data';
 import SongCard from '@/components/song-card';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useMusicPlayer } from '@/context/music-player-context';
-import type { Song } from '@/types';
+import type { Song, Artist, Album } from '@/types';
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [allSongs, setAllSongs] = useState<Song[]>([]);
+  const [allArtists, setAllArtists] = useState<Artist[]>([]);
+  const [allAlbums, setAllAlbums] = useState<Album[]>([]);
+  const [loading, setLoading] = useState(true);
   const { playSong } = useMusicPlayer();
+  
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [songData, artistData, albumData] = await Promise.all([
+          getSongs(),
+          getArtists(),
+          getAlbums(),
+        ]);
+        setAllSongs(songData);
+        setAllArtists(artistData);
+        setAllAlbums(albumData);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   const handlePlay = (song: Song) => {
     playSong(song, filteredSongs);
   };
 
   const filteredSongs = searchTerm
-    ? songs.filter((song) => song.title.toLowerCase().includes(searchTerm.toLowerCase()))
+    ? allSongs.filter((song) => song.title.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
   const filteredArtists = searchTerm
-    ? artists.filter((artist) => artist.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    ? allArtists.filter((artist) => artist.name.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
   const filteredAlbums = searchTerm
-    ? albums.filter((album) => album.title.toLowerCase().includes(searchTerm.toLowerCase()))
+    ? allAlbums.filter((album) => album.title.toLowerCase().includes(searchTerm.toLowerCase()))
     : [];
 
   return (

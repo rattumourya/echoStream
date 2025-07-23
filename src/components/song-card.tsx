@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -6,7 +7,7 @@ import { Button } from './ui/button';
 import { Play } from 'lucide-react';
 import type { Album, Playlist, Song } from '@/types';
 import { useMusicPlayer } from '@/context/music-player-context';
-import { songs as allSongs } from '@/lib/data';
+import { getSongs } from '@/lib/data';
 
 interface SongCardProps {
   item: Album | Playlist;
@@ -17,8 +18,10 @@ interface SongCardProps {
 export default function SongCard({ item, type, aspectRatio = 'portrait' }: SongCardProps) {
   const { playSong } = useMusicPlayer();
 
-  const handlePlay = () => {
-    let songsToPlay: Song[];
+  const handlePlay = async () => {
+    let songsToPlay: Song[] = [];
+    const allSongs = await getSongs();
+    
     if (type === 'album') {
       songsToPlay = allSongs.filter(song => song.album === item.title);
     } else {
