@@ -50,7 +50,7 @@ export default function LibraryPage() {
       id: `playlist-${Date.now()}`,
       title: data.title,
       description: data.description || '',
-      coverArt: 'https://placehold.co/300x300.png',
+      coverArt: 'https://placehold.co/600x600.png',
     };
     setPlaylists((prevPlaylists) => [newPlaylist, ...prevPlaylists]);
     toast({

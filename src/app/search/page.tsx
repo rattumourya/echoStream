@@ -82,7 +82,7 @@ export default function SearchPage() {
                 {filteredArtists.map((artist) => (
                     <div key={artist.id} className="flex flex-col items-center space-y-2 text-center">
                         <Avatar className="h-32 w-32">
-                            <AvatarImage src={artist.imageUrl} alt={artist.name} />
+                            <AvatarImage src={artist.imageUrl} alt={artist.name} data-ai-hint="artist image" />
                             <AvatarFallback>{artist.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <p className="font-semibold">{artist.name}</p>
