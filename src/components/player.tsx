@@ -36,6 +36,7 @@ export default function Player() {
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(0.5);
   const [lastVolume, setLastVolume] = useState(0.5);
+  const [isHovered, setHovered] = useState(false);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -123,9 +124,14 @@ export default function Player() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 h-24 border-t bg-background/95 backdrop-blur-sm">
+    <div 
+        className="group fixed bottom-0 left-0 right-0 z-50 h-24 border-t"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+    >
+        <div className={cn("absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity", isHovered ? "opacity-100" : "opacity-0 group-hover:opacity-100")}/>
       <audio ref={audioRef} />
-      <div className="grid h-full grid-cols-3 items-center px-4 md:px-6">
+      <div className="relative grid h-full grid-cols-3 items-center px-4 md:px-6">
         <div className="flex items-center gap-4">
           <Image
             src={currentSong.albumArt}
@@ -141,7 +147,7 @@ export default function Player() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-2">
+        <div className={cn("flex flex-col items-center gap-2 transition-opacity", isHovered ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={playPrevious}>
               <SkipBack className="h-6 w-6" />
@@ -169,7 +175,7 @@ export default function Player() {
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 md:gap-4">
+        <div className={cn("flex items-center justify-end gap-2 md:gap-4 transition-opacity", isHovered ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
