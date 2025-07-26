@@ -134,7 +134,7 @@ export default function Player() {
   return (
     <div className="group fixed bottom-0 left-0 right-0 z-50 h-24 border-t bg-background/95 backdrop-blur-sm">
       <audio ref={audioRef} />
-      <div className="relative grid h-full grid-cols-3 items-center px-4 md:px-6">
+      <div className="grid h-full grid-cols-[1fr_2fr_1fr] items-center px-4 md:px-6">
         <div className="flex items-center gap-4">
           <Image
             src={currentSong.albumArt}
@@ -150,8 +150,7 @@ export default function Player() {
           </div>
         </div>
 
-        <div className="absolute left-1/2 top-1/2 w-full max-w-lg -translate-x-1/2 -translate-y-1/2">
-          <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center justify-center gap-2">
             <div className="flex items-center gap-4 opacity-0 transition-opacity group-hover:opacity-100">
               <Button variant="ghost" size="icon" onClick={playPrevious}>
                 <SkipBack className="h-6 w-6" />
@@ -177,7 +176,6 @@ export default function Player() {
               <Slider value={[progress || 0]} max={100} step={1} className="w-full" onValueChange={handleProgressChange} />
               <span className="text-xs text-muted-foreground">{formatTime(duration)}</span>
             </div>
-          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100 md:gap-4">
