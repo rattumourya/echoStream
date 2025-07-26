@@ -132,7 +132,7 @@ export default function Player() {
   }
 
   return (
-    <div className="group fixed bottom-0 left-0 right-0 z-50 h-24 border-t bg-background/95 backdrop-blur-sm">
+    <div className="fixed bottom-0 left-0 right-0 z-50 h-24 border-t bg-background/95 backdrop-blur-sm">
       <audio ref={audioRef} />
       <div className="grid h-full grid-cols-[1fr_2fr_1fr] items-center px-4 md:px-6">
         <div className="flex items-center gap-4">
@@ -151,7 +151,7 @@ export default function Player() {
         </div>
 
         <div className="flex flex-col items-center justify-center gap-2">
-            <div className="flex items-center gap-4 opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={playPrevious}>
                 <SkipBack className="h-6 w-6" />
               </Button>
@@ -171,14 +171,14 @@ export default function Player() {
                 <SkipForward className="h-6 w-6" />
               </Button>
             </div>
-            <div className="flex w-full max-w-sm items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="flex w-full max-w-sm items-center gap-2">
               <span className="text-xs text-muted-foreground">{formatTime(currentTime)}</span>
               <Slider value={[progress || 0]} max={100} step={1} className="w-full" onValueChange={handleProgressChange} />
               <span className="text-xs text-muted-foreground">{formatTime(duration)}</span>
             </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100 md:gap-4">
+        <div className="flex items-center justify-end gap-2 md:gap-4">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
