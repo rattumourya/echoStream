@@ -7,8 +7,9 @@ import SongCard from '@/components/song-card';
 import Recommendations from '@/components/recommendations';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Album, Playlist } from '@/types';
+import withAuth from '@/components/with-auth';
 
-export default function Home() {
+function Home() {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,3 +85,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default withAuth(Home);

@@ -12,8 +12,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useMusicPlayer } from '@/context/music-player-context';
 import type { Song, Artist, Album } from '@/types';
+import withAuth from '@/components/with-auth';
 
-export default function SearchPage() {
+function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [submittedSearchTerm, setSubmittedSearchTerm] = useState('');
   const [allSongs, setAllSongs] = useState<Song[]>([]);
@@ -144,3 +145,5 @@ export default function SearchPage() {
     </div>
   );
 }
+
+export default withAuth(SearchPage);
