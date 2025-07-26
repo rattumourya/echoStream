@@ -8,6 +8,7 @@ import {
   signInWithPopup,
   signInWithPhoneNumber,
   ConfirmationResult,
+  RecaptchaVerifier,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +24,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 declare global {
     interface Window {
         confirmationResult?: ConfirmationResult;
+        recaptchaVerifier?: RecaptchaVerifier;
     }
 }
 
@@ -49,18 +51,25 @@ export default function LoginPage() {
     }
   };
 
+  const setupRecaptcha = () => {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            'size': 'invisible',
+            'callback': (response: any) => {
+                // reCAPTCHA solved, allow signInWithPhoneNumber.
+            }
+        });
+      }
+      return window.recaptchaVerifier;
+  }
+
   const handlePhoneSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // In a production app, you would use a RecaptchaVerifier here.
-      // For this development environment, we will rely on test numbers.
-      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, {
-          // @ts-ignore
-          'size': 'invisible',
-          'callback': () => {}
-      });
+      const recaptchaVerifier = setupRecaptcha();
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
       window.confirmationResult = confirmationResult;
       setOtpSent(true);
       toast({ title: 'OTP Sent!', description: 'Please check your phone for the verification code.' });
@@ -68,7 +77,7 @@ export default function LoginPage() {
       console.error('Error sending OTP:', error);
       toast({
         title: 'Failed to Send OTP',
-        description: 'Please check the phone number and reCAPTCHA configuration.',
+        description: 'Please check the phone number and use the test credentials.',
         variant: 'destructive',
       });
     } finally {
