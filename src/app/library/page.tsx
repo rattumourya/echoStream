@@ -6,10 +6,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getPlaylists, getAlbums } from '@/lib/data';
+import { getAlbums, deletePlaylist as deletePlaylistFromDb } from '@/lib/data';
 import SongCard from '@/components/song-card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,17 @@ import {
   DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,6 +39,7 @@ import type { Playlist, Album } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { usePlaylists } from '@/context/playlist-context';
 
 const playlistFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters.' }),
@@ -38,9 +50,9 @@ type PlaylistFormValues = z.infer<typeof playlistFormSchema>;
 
 export default function LibraryPage() {
   const [open, setOpen] = useState(false);
-  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const { playlists, loading: playlistsLoading, refreshPlaylists } = usePlaylists();
   const [albums, setAlbums] = useState<Album[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingAlbums, setLoadingAlbums] = useState(true);
   const { toast } = useToast();
   const form = useForm<PlaylistFormValues>({
     resolver: zodResolver(playlistFormSchema),
@@ -51,21 +63,17 @@ export default function LibraryPage() {
   });
   
   useEffect(() => {
-    async function fetchData() {
+    async function fetchAlbumsData() {
       try {
-        const [playlistData, albumData] = await Promise.all([
-            getPlaylists(),
-            getAlbums(),
-        ]);
-        setPlaylists(playlistData);
+        const albumData = await getAlbums();
         setAlbums(albumData);
       } catch (error) {
-        console.error("Failed to fetch data:", error);
+        console.error("Failed to fetch albums:", error);
       } finally {
-        setLoading(false);
+        setLoadingAlbums(false);
       }
     }
-    fetchData();
+    fetchAlbumsData();
   }, []);
 
   async function onSubmit(data: PlaylistFormValues) {
@@ -74,17 +82,12 @@ export default function LibraryPage() {
         title: data.title,
         description: data.description || '',
         coverArt: 'https://placehold.co/600x600.png',
-        'data-ai-hint': 'abstract gradient'
+        'data-ai-hint': 'abstract gradient',
+        songIds: [],
       };
       
-      const docRef = await addDoc(collection(db, "playlists"), newPlaylistData);
-      
-      const newPlaylist: Playlist = {
-        id: docRef.id,
-        ...newPlaylistData
-      };
-      
-      setPlaylists((prevPlaylists) => [newPlaylist, ...prevPlaylists]);
+      await addDoc(collection(db, "playlists"), newPlaylistData);
+      await refreshPlaylists();
       
       toast({
         title: 'Playlist Created!',
@@ -103,6 +106,26 @@ export default function LibraryPage() {
       form.reset();
     }
   }
+
+  async function deletePlaylist(playlistId: string) {
+    try {
+      await deletePlaylistFromDb(playlistId);
+      await refreshPlaylists();
+      toast({
+        title: 'Playlist Deleted',
+        description: 'The playlist has been removed from your library.',
+      });
+    } catch (error) {
+      console.error('Failed to delete playlist:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete playlist. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  }
+  
+  const loading = playlistsLoading || loadingAlbums;
   
   return (
     <div className="space-y-8">
@@ -184,7 +207,28 @@ export default function LibraryPage() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {playlists.map((playlist) => (
-                <SongCard key={playlist.id} item={playlist} type="playlist" aspectRatio="square" />
+                <div key={playlist.id} className="relative group/card">
+                  <SongCard item={playlist} type="playlist" aspectRatio="square" />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                        <Trash2 className="h-4 w-4"/>
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the "{playlist.title}" playlist.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => deletePlaylist(playlist.id)}>Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               ))}
             </div>
           )}

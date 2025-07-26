@@ -150,37 +150,37 @@ export default function Player() {
           </div>
         </div>
 
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg">
-            <div className={cn("flex flex-col items-center gap-2 transition-opacity opacity-0 group-hover:opacity-100")}>
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={playPrevious}>
-                  <SkipBack className="h-6 w-6" />
-                </Button>
-                <Button
-                  variant="default"
-                  size="icon"
-                  className="h-12 w-12 rounded-full bg-accent hover:bg-accent/90"
-                  onClick={togglePlayPause}
-                >
-                  {isPlaying ? (
-                    <Pause className="h-6 w-6 fill-white text-white" />
-                  ) : (
-                    <Play className="h-6 w-6 fill-white text-white" />
-                  )}
-                </Button>
-                <Button variant="ghost" size="icon" onClick={playNext}>
-                  <SkipForward className="h-6 w-6" />
-                </Button>
-              </div>
-              <div className="w-full max-w-sm flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">{formatTime(currentTime)}</span>
-                <Slider value={[progress || 0]} max={100} step={1} className="w-full" onValueChange={handleProgressChange} />
-                <span className="text-xs text-muted-foreground">{formatTime(duration)}</span>
-              </div>
+        <div className="absolute left-1/2 top-1/2 w-full max-w-lg -translate-x-1/2 -translate-y-1/2">
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-4 opacity-0 transition-opacity group-hover:opacity-100">
+              <Button variant="ghost" size="icon" onClick={playPrevious}>
+                <SkipBack className="h-6 w-6" />
+              </Button>
+              <Button
+                variant="default"
+                size="icon"
+                className="h-12 w-12 rounded-full bg-accent hover:bg-accent/90"
+                onClick={togglePlayPause}
+              >
+                {isPlaying ? (
+                  <Pause className="h-6 w-6 fill-white text-white" />
+                ) : (
+                  <Play className="h-6 w-6 fill-white text-white" />
+                )}
+              </Button>
+              <Button variant="ghost" size="icon" onClick={playNext}>
+                <SkipForward className="h-6 w-6" />
+              </Button>
             </div>
+            <div className="flex w-full max-w-sm items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+              <span className="text-xs text-muted-foreground">{formatTime(currentTime)}</span>
+              <Slider value={[progress || 0]} max={100} step={1} className="w-full" onValueChange={handleProgressChange} />
+              <span className="text-xs text-muted-foreground">{formatTime(duration)}</span>
+            </div>
+          </div>
         </div>
 
-        <div className={cn("flex items-center justify-end gap-2 md:gap-4 transition-opacity opacity-0 group-hover:opacity-100")}>
+        <div className="flex items-center justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100 md:gap-4">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -192,13 +192,13 @@ export default function Player() {
                 <SheetTitle>Up Next</SheetTitle>
               </SheetHeader>
               <ScrollArea className="h-[calc(100%-4rem)] pr-4">
-                <div className="flex flex-col gap-y-1 mt-4">
+                <div className="mt-4 flex flex-col gap-y-1">
                   {queue.length > 0 ? (
                     queue.map((song, index) => (
                       <div
                         key={`${song.id}-${index}`}
                         className={cn(
-                          "flex items-center gap-4 p-2 rounded-md cursor-pointer hover:bg-muted",
+                          "flex items-center gap-4 rounded-md p-2 cursor-pointer hover:bg-muted",
                           song.id === currentSong?.id && "bg-muted/50"
                         )}
                         onClick={() => playSong(song, queue)}
@@ -216,7 +216,7 @@ export default function Player() {
                           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
                         </div>
                         {song.id === currentSong?.id && isPlaying && (
-                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-accent h-5 w-5">
+                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-accent">
                                 <rect x="6" y="5" width="2" height="14" fill="currentColor"><animate attributeName="height" values="14;8;14" begin="0s" dur="1s" repeatCount="indefinite" /></rect>
                                 <rect x="11" y="5" width="2" height="14" fill="currentColor"><animate attributeName="height" values="14;8;14" begin="0.2s" dur="1s" repeatCount="indefinite" /></rect>
                                 <rect x="16" y="5" width="2" height="14" fill="currentColor"><animate attributeName="height" values="14;8;14" begin="0.4s" dur="1s" repeatCount="indefinite" /></rect>
@@ -225,7 +225,7 @@ export default function Player() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-muted-foreground text-center mt-8">Your queue is empty.</p>
+                    <p className="mt-8 text-center text-muted-foreground">Your queue is empty.</p>
                   )}
                 </div>
               </ScrollArea>

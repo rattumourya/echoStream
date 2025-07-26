@@ -6,12 +6,10 @@ import { usePathname } from 'next/navigation';
 import { Home, Search, Library, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AppLogo from './app-logo';
-import { getPlaylists } from '@/lib/data';
 import { Separator } from './ui/separator';
 import { ScrollArea } from './ui/scroll-area';
-import { useEffect, useState } from 'react';
-import type { Playlist } from '@/types';
 import { Skeleton } from './ui/skeleton';
+import { usePlaylists } from '@/context/playlist-context';
 
 const mainNav = [
   { name: 'Home', href: '/', icon: Home },
@@ -21,22 +19,7 @@ const mainNav = [
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchPlaylists() {
-      try {
-        const playlistData = await getPlaylists();
-        setPlaylists(playlistData);
-      } catch (error) {
-        console.error("Failed to fetch playlists:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPlaylists();
-  }, []);
+  const { playlists, loading } = usePlaylists();
 
   return (
     <aside className="hidden w-64 flex-col bg-card md:flex">
@@ -66,7 +49,7 @@ export default function AppSidebar() {
       <>
         <Separator className="my-2" />
         <div className="flex-1 min-h-0">
-          <ScrollArea className="h-full">
+          <ScrollArea className="h-full pb-24">
             <div className="flex flex-col gap-y-2 px-2 py-2">
               <p className="px-2 py-1 text-xs font-semibold text-muted-foreground">Playlists</p>
               {loading ? (

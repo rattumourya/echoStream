@@ -15,6 +15,7 @@ import type { Song, Artist, Album } from '@/types';
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [submittedSearchTerm, setSubmittedSearchTerm] = useState('');
   const [allSongs, setAllSongs] = useState<Song[]>([]);
   const [allArtists, setAllArtists] = useState<Artist[]>([]);
   const [allAlbums, setAllAlbums] = useState<Album[]>([]);
@@ -40,25 +41,30 @@ export default function SearchPage() {
     }
     fetchData();
   }, []);
+  
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittedSearchTerm(searchTerm);
+  };
 
   const handlePlay = (song: Song) => {
     playSong(song, filteredSongs);
   };
 
-  const filteredSongs = searchTerm
-    ? allSongs.filter((song) => song.title.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredSongs = submittedSearchTerm
+    ? allSongs.filter((song) => song.title.toLowerCase().includes(submittedSearchTerm.toLowerCase()))
     : [];
-  const filteredArtists = searchTerm
-    ? allArtists.filter((artist) => artist.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredArtists = submittedSearchTerm
+    ? allArtists.filter((artist) => artist.name.toLowerCase().includes(submittedSearchTerm.toLowerCase()))
     : [];
-  const filteredAlbums = searchTerm
-    ? allAlbums.filter((album) => album.title.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredAlbums = submittedSearchTerm
+    ? allAlbums.filter((album) => album.title.toLowerCase().includes(submittedSearchTerm.toLowerCase()))
     : [];
 
   return (
     <div className="space-y-8">
       <h1 className="text-4xl font-headline font-bold">Search</h1>
-      <div className="flex w-full max-w-lg items-center space-x-2">
+      <form onSubmit={handleSearchSubmit} className="flex w-full max-w-lg items-center space-x-2">
         <Input
           type="search"
           placeholder="Search for songs, artists, albums..."
@@ -69,9 +75,9 @@ export default function SearchPage() {
         <Button type="submit" size="lg">
           <SearchIcon className="mr-2 h-5 w-5" /> Search
         </Button>
-      </div>
+      </form>
 
-      {searchTerm && (
+      {submittedSearchTerm && (
         <div className="space-y-12">
           {filteredSongs.length > 0 && (
             <section>
@@ -130,7 +136,7 @@ export default function SearchPage() {
 
           {filteredSongs.length === 0 && filteredArtists.length === 0 && filteredAlbums.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-muted-foreground">No results found for "{searchTerm}"</p>
+              <p className="text-muted-foreground">No results found for "{submittedSearchTerm}"</p>
             </div>
           )}
         </div>

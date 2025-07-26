@@ -1,5 +1,5 @@
 
-import { collection, getDocs, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Song, Artist, Album, Playlist } from '@/types';
 
@@ -74,6 +74,15 @@ export async function getPlaylists(): Promise<Playlist[]> {
     } catch (error) {
         console.error("Error fetching playlists from Firestore:", error);
     }
+    // If Firestore is empty or errors out, populate with static data.
+    // This is also a good place to seed the database for the first time.
+    for (const playlist of playlists) {
+        const playlistDocRef = doc(db, 'playlists', playlist.id);
+        const playlistDoc = await getDoc(playlistDocRef);
+        if (!playlistDoc.exists()) {
+            await setDoc(playlistDocRef, playlist);
+        }
+    }
     return playlists;
 }
 
@@ -103,7 +112,6 @@ export async function updatePlaylistSongs(playlistId: string, songIds: string[])
         if (!playlistDocSnap.exists()) {
             const staticPlaylist = playlists.find(p => p.id === playlistId);
             if (staticPlaylist) {
-                // Create the document in Firestore before updating
                 await setDoc(playlistDocRef, { ...staticPlaylist, songIds });
             } else {
                 throw new Error(`Playlist with id ${playlistId} not found in static data.`);
@@ -113,6 +121,16 @@ export async function updatePlaylistSongs(playlistId: string, songIds: string[])
         }
     } catch(e) {
         console.error(`Failed to update playlist ${playlistId}`, e);
+        throw e;
+    }
+}
+
+export async function deletePlaylist(playlistId: string): Promise<void> {
+    const playlistDocRef = doc(db, 'playlists', playlistId);
+    try {
+        await deleteDoc(playlistDocRef);
+    } catch (e) {
+        console.error(`Failed to delete playlist ${playlistId}`, e);
         throw e;
     }
 }
