@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Chrome } from 'lucide-react';
+import AppLogo from '@/components/app-logo';
 
 declare global {
     interface Window {
@@ -109,10 +110,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-15rem)] items-center justify-center">
+    <div className="flex min-h-dvh flex-col items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome to EchoStream</CardTitle>
+            <div className="mb-4 flex items-center justify-center gap-2">
+                <AppLogo className="h-10 w-10 text-primary" />
+                <h1 className="text-3xl font-bold font-headline">EchoStream</h1>
+            </div>
+          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
           <CardDescription>Sign in to access your personalized library.</CardDescription>
         </CardHeader>
         <CardContent>
