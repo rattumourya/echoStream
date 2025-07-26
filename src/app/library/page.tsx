@@ -40,6 +40,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { usePlaylists } from '@/context/playlist-context';
+import withAuth from '@/components/with-auth';
 
 const playlistFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters.' }),
@@ -48,7 +49,7 @@ const playlistFormSchema = z.object({
 
 type PlaylistFormValues = z.infer<typeof playlistFormSchema>;
 
-export default function LibraryPage() {
+function LibraryPage() {
   const [open, setOpen] = useState(false);
   const { playlists, loading: playlistsLoading, refreshPlaylists } = usePlaylists();
   const [albums, setAlbums] = useState<Album[]>([]);
@@ -82,7 +83,6 @@ export default function LibraryPage() {
         title: data.title,
         description: data.description || '',
         coverArt: 'https://placehold.co/600x600.png',
-        'data-ai-hint': 'abstract gradient',
         songIds: [],
       };
       
@@ -256,3 +256,5 @@ export default function LibraryPage() {
     </div>
   );
 }
+
+export default withAuth(LibraryPage);

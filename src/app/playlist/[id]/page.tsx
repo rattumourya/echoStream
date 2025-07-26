@@ -15,8 +15,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import type { Song, Playlist } from '@/types';
 import { Input } from '@/components/ui/input';
+import withAuth from '@/components/with-auth';
 
-export default function PlaylistPage() {
+function PlaylistPage() {
   const params = useParams();
   const id = params.id as string;
   const { playSong } = useMusicPlayer();
@@ -231,3 +232,5 @@ function PlaylistSkeleton() {
         </div>
     )
 }
+
+export default withAuth(PlaylistPage);

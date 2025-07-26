@@ -1,11 +1,16 @@
 
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import withAuth from "@/components/with-auth";
+import { useAuth } from "@/context/auth-context";
 
-export default function SettingsPage() {
+function SettingsPage() {
+  const { user } = useAuth();
   return (
     <div className="space-y-8">
       <h1 className="text-4xl font-headline font-bold">Settings</h1>
@@ -20,11 +25,11 @@ export default function SettingsPage() {
             <CardContent className="pt-6 space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" defaultValue="Echo User" />
+                <Input id="name" defaultValue={user?.displayName || 'Echo User'} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue="user@example.com" disabled />
+                <Input id="email" type="email" defaultValue={user?.email || 'user@example.com'} disabled />
               </div>
               <Button>Save Changes</Button>
             </CardContent>
@@ -54,3 +59,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+export default withAuth(SettingsPage);

@@ -6,6 +6,7 @@ import Player from '@/components/player';
 import AppHeader from '@/components/app-header';
 import SidebarLoader from '@/components/sidebar-loader';
 import { PlaylistProvider } from '@/context/playlist-context';
+import { AuthProvider } from '@/context/auth-context';
 
 
 export const metadata: Metadata = {
@@ -27,23 +28,25 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <MusicPlayerProvider>
-          <PlaylistProvider>
-            <div className="relative flex h-dvh overflow-hidden">
-              <SidebarLoader />
-              <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-                <AppHeader />
-                <main className="pb-24">
-                  <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-                    {children}
-                  </div>
-                </main>
+        <AuthProvider>
+          <MusicPlayerProvider>
+            <PlaylistProvider>
+              <div className="relative flex h-dvh overflow-hidden">
+                <SidebarLoader />
+                <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+                  <AppHeader />
+                  <main className="pb-24">
+                    <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+                      {children}
+                    </div>
+                  </main>
+                </div>
               </div>
-            </div>
-            <Player />
-            <Toaster />
-          </PlaylistProvider>
-        </MusicPlayerProvider>
+              <Player />
+              <Toaster />
+            </PlaylistProvider>
+          </MusicPlayerProvider>
+        </AuthProvider>
       </body>
     </html>
   );
