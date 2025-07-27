@@ -9,18 +9,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Album, Playlist } from '@/types';
 import withAuth from '@/components/with-auth';
 import ProtectedLayout from '@/components/protected-layout';
+import { useAuth } from '@/context/auth-context';
 
 function Home() {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchData() {
+      if (!user) return;
       try {
         const [albumData, playlistData] = await Promise.all([
           getAlbums(),
-          getPlaylists(),
+          getPlaylists(user.uid),
         ]);
         setAlbums(albumData);
         setPlaylists(playlistData);
@@ -31,7 +34,7 @@ function Home() {
       }
     }
     fetchData();
-  }, []);
+  }, [user]);
 
   return (
     <ProtectedLayout>
