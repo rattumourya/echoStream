@@ -1,3 +1,4 @@
+
 export interface Song {
   id: string;
   title: string;
@@ -6,6 +7,7 @@ export interface Song {
   duration: string;
   albumArt: string;
   url: string;
+  isPremium?: boolean;
 }
 
 export interface Artist {
@@ -27,4 +29,11 @@ export interface Playlist {
   description: string;
   coverArt: string;
   songIds?: string[];
+}
+
+export interface UserProfile {
+    id: string;
+    isPremium: boolean;
+    email?: string;
+    name?: string;
 }

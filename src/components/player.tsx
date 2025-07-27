@@ -18,7 +18,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
-
+import { useAuth } from '@/context/auth-context';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function Player() {
   const {
@@ -30,6 +32,10 @@ export default function Player() {
     queue,
     playSong,
   } = useMusicPlayer();
+  const { userProfile } = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -37,9 +43,24 @@ export default function Player() {
   const [volume, setVolume] = useState(0.5);
   const [lastVolume, setLastVolume] = useState(0.5);
 
+  const handleUpgrade = () => {
+    router.push('/settings');
+  };
+
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+
+    if (currentSong?.isPremium && !userProfile?.isPremium) {
+      toast({
+        title: "Upgrade to Premium",
+        description: "This song is only available to premium users.",
+        variant: "destructive",
+        action: <Button onClick={handleUpgrade}>Upgrade</Button>,
+      });
+      audio.pause();
+      return;
+    }
 
     const setAudioData = () => {
       setDuration(audio.duration);
@@ -71,7 +92,6 @@ export default function Player() {
         audio.pause();
     }
 
-
     audio.addEventListener('loadeddata', setAudioData);
     audio.addEventListener('timeupdate', setAudioTime);
     audio.addEventListener('ended', handleEnded);
@@ -81,7 +101,7 @@ export default function Player() {
       audio.removeEventListener('timeupdate', setAudioTime);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [currentSong, isPlaying, playNext]);
+  }, [currentSong, isPlaying, playNext, userProfile, toast]);
   
   useEffect(() => {
     if (audioRef.current) {

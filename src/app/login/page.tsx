@@ -8,7 +8,8 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { doc, setDoc } from "firebase/firestore"; 
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +53,12 @@ export default function LoginPage() {
         if (userCredential.user) {
           await updateProfile(userCredential.user, {
             displayName: data.name,
+          });
+          // Create user profile in Firestore
+          await setDoc(doc(db, "users", userCredential.user.uid), {
+              email: userCredential.user.email,
+              name: data.name,
+              isPremium: false
           });
         }
         toast({ title: 'Account Created!', description: 'You have been successfully signed up.' });

@@ -20,18 +20,18 @@ export const albums: Album[] = [
 ];
 
 export const songs: Song[] = [
-    { id: '1', title: 'Orion', artist: 'Cosmic Pulse', album: 'Starlight', duration: '3:45', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-dreams.mp3', "data-ai-hint": 'stars nebula' },
-    { id: '2', title: 'Nebula', artist: 'Cosmic Pulse', album: 'Starlight', duration: '4:12', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-creativeminds.mp3', "data-ai-hint": 'stars nebula' },
-    { id: '3', title: 'Sunset', artist: 'Stella Wave', album: 'Ocean Drive', duration: '3:30', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-anewbeginning.mp3', "data-ai-hint": 'ocean road' },
-    { id: '4', title: 'Palm Trees', artist: 'Stella Wave', album: 'Ocean Drive', duration: '2:58', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-happyrock.mp3', "data-ai-hint": 'ocean road' },
-    { id: '5', title: 'Skyline', artist: 'Neon Dreams', album: 'Metropolis', duration: '3:55', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-jazzyfrenchy.mp3', "data-ai-hint": 'futuristic city' },
-    { id: '6', title: 'Nightride', artist: 'Neon Dreams', album: 'Metropolis', duration: '4:20', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-funkyelement.mp3', "data-ai-hint": 'futuristic city' },
-    { id: '7', title: 'Timeless', artist: 'Echo Collective', album: 'Chronos', duration: '5:01', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-memories.mp3', "data-ai-hint": 'clock gears' },
-    { id: '8', title: 'Hourglass', artist: 'Echo Collective', album: 'Chronos', duration: '4:44', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-perception.mp3', "data-ai-hint": 'clock gears' },
-    { id: '9', title: 'Supernova', artist: 'Cosmic Pulse', album: 'Galaxy', duration: '3:21', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-rumble.mp3', "data-ai-hint": 'spiral galaxy' },
-    { id: '10', title: 'Andromeda', artist: 'Cosmic Pulse', album: 'Galaxy', duration: '4:05', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-scifi.mp3', "data-ai-hint": 'spiral galaxy' },
-    { id: '11', title: 'Oasis', artist: 'Stella Wave', album: 'Mirage', duration: '3:15', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-slowmotion.mp3', "data-ai-hint": 'desert dunes' },
-    { id: '12', title: 'Dunes', artist: 'Stella Wave', album: 'Mirage', duration: '3:50', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-summer.mp3', "data-ai-hint": 'desert dunes' },
+    { id: '1', title: 'Orion', artist: 'Cosmic Pulse', album: 'Starlight', duration: '3:45', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-dreams.mp3', "data-ai-hint": 'stars nebula', isPremium: false },
+    { id: '2', title: 'Nebula', artist: 'Cosmic Pulse', album: 'Starlight', duration: '4:12', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-creativeminds.mp3', "data-ai-hint": 'stars nebula', isPremium: false },
+    { id: '3', title: 'Sunset', artist: 'Stella Wave', album: 'Ocean Drive', duration: '3:30', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-anewbeginning.mp3', "data-ai-hint": 'ocean road', isPremium: false },
+    { id: '4', title: 'Palm Trees', artist: 'Stella Wave', album: 'Ocean Drive', duration: '2:58', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-happyrock.mp3', "data-ai-hint": 'ocean road', isPremium: false },
+    { id: '5', title: 'Skyline', artist: 'Neon Dreams', album: 'Metropolis', duration: '3:55', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-jazzyfrenchy.mp3', "data-ai-hint": 'futuristic city', isPremium: true },
+    { id: '6', title: 'Nightride', artist: 'Neon Dreams', album: 'Metropolis', duration: '4:20', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-funkyelement.mp3', "data-ai-hint": 'futuristic city', isPremium: true },
+    { id: '7', title: 'Timeless', artist: 'Echo Collective', album: 'Chronos', duration: '5:01', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-memories.mp3', "data-ai-hint": 'clock gears', isPremium: false },
+    { id: '8', title: 'Hourglass', artist: 'Echo Collective', album: 'Chronos', duration: '4:44', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-perception.mp3', "data-ai-hint": 'clock gears', isPremium: true },
+    { id: '9', title: 'Supernova', artist: 'Cosmic Pulse', album: 'Galaxy', duration: '3:21', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-rumble.mp3', "data-ai-hint": 'spiral galaxy', isPremium: true },
+    { id: '10', title: 'Andromeda', artist: 'Cosmic Pulse', album: 'Galaxy', duration: '4:05', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-scifi.mp3', "data-ai-hint": 'spiral galaxy', isPremium: true },
+    { id: '11', title: 'Oasis', artist: 'Stella Wave', album: 'Mirage', duration: '3:15', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-slowmotion.mp3', "data-ai-hint": 'desert dunes', isPremium: false },
+    { id: '12', title: 'Dunes', artist: 'Stella Wave', album: 'Mirage', duration: '3:50', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-summer.mp3', "data-ai-hint": 'desert dunes', isPremium: true },
 ];
 
 export const playlists: Playlist[] = [
@@ -61,7 +61,15 @@ export async function getSongs(): Promise<Song[]> {
     const songsCol = collection(db, 'songs');
     const songSnapshot = await getDocs(songsCol);
     const songList = songSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Song));
-    return songList.length > 0 ? songList : songs;
+    if (songList.length > 0) {
+        return songList;
+    }
+    // Seed if empty
+    for (const song of songs) {
+        const songDocRef = doc(db, 'songs', song.id);
+        await setDoc(songDocRef, song);
+    }
+    return songs;
 }
 
 export async function getPlaylists(): Promise<Playlist[]> {

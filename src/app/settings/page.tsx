@@ -15,7 +15,10 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { updateProfile } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { Badge } from "@/components/ui/badge";
+import { Star } from "lucide-react";
+import { doc, updateDoc } from "firebase/firestore";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -26,7 +29,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 
 function SettingsPage() {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<ProfileFormValues>({
@@ -47,6 +50,9 @@ function SettingsPage() {
       await updateProfile(auth.currentUser, {
         displayName: data.name
       });
+      const userDocRef = doc(db, 'users', auth.currentUser.uid);
+      await updateDoc(userDocRef, { name: data.name });
+
       toast({
         title: "Profile Updated",
         description: "Your name has been updated successfully."
@@ -59,6 +65,13 @@ function SettingsPage() {
       });
     }
   };
+  
+  const handleUpgrade = () => {
+      toast({
+          title: "Coming Soon!",
+          description: "Premium features are under development."
+      })
+  }
 
   return (
     <ProtectedLayout>
@@ -108,6 +121,42 @@ function SettingsPage() {
             </Card>
           </div>
         </div>
+
+        <Separator />
+        
+        <div className="grid gap-8 md:grid-cols-3">
+          <div className="md:col-span-1">
+            <h2 className="text-2xl font-semibold font-headline">Subscription</h2>
+            <p className="text-muted-foreground">Manage your subscription plan.</p>
+          </div>
+          <div className="md:col-span-2">
+            <Card>
+              <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Your Plan</span>
+                    {userProfile?.isPremium ? (
+                       <Badge>Premium</Badge>
+                    ) : (
+                       <Badge variant="secondary">Free</Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription>
+                    {userProfile?.isPremium 
+                      ? "You have access to all features." 
+                      : "Upgrade to premium to listen to all songs."}
+                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!userProfile?.isPremium && (
+                  <Button onClick={handleUpgrade}>
+                      <Star className="mr-2 h-4 w-4" /> Go Premium
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
 
         <Separator />
 

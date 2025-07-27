@@ -2,8 +2,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Search as SearchIcon } from 'lucide-react';
 import { getSongs, getArtists, getAlbums } from '@/lib/data';
 import SongCard from '@/components/song-card';
@@ -14,6 +16,8 @@ import { useMusicPlayer } from '@/context/music-player-context';
 import type { Song, Artist, Album } from '@/types';
 import withAuth from '@/components/with-auth';
 import ProtectedLayout from '@/components/protected-layout';
+import { useAuth } from '@/context/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
 function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,6 +27,9 @@ function SearchPage() {
   const [allAlbums, setAllAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
   const { playSong } = useMusicPlayer();
+  const { userProfile } = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
   
   useEffect(() => {
     async function fetchData() {
@@ -49,7 +56,20 @@ function SearchPage() {
     setSubmittedSearchTerm(searchTerm);
   };
 
+  const handleUpgrade = () => {
+    router.push('/settings');
+  };
+
   const handlePlay = (song: Song) => {
+    if (song.isPremium && !userProfile?.isPremium) {
+      toast({
+        title: "Upgrade to Premium",
+        description: "This song is only available to premium users.",
+        variant: "destructive",
+        action: <Button onClick={handleUpgrade}>Upgrade</Button>,
+      });
+      return;
+    }
     playSong(song, filteredSongs);
   };
 
@@ -94,7 +114,10 @@ function SearchPage() {
                             <div className="flex-1 flex items-center space-x-4">
                               <span className="text-muted-foreground">{index + 1}</span>
                               <div>
-                                  <p className="font-semibold">{song.title}</p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-semibold">{song.title}</p>
+                                    {song.isPremium && !userProfile?.isPremium && <Badge variant="destructive" className="h-5">Premium</Badge>}
+                                  </div>
                                   <p className="text-sm text-muted-foreground">{song.artist}</p>
                               </div>
                             </div>

@@ -2,9 +2,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Clock, Plus, Trash2 } from 'lucide-react';
+import { Clock, Plus, Trash2, Star } from 'lucide-react';
 import { getPlaylistById, getSongs, updatePlaylistSongs } from '@/lib/data';
 import { useMusicPlayer } from '@/context/music-player-context';
 import { Button } from '@/components/ui/button';
@@ -17,12 +17,16 @@ import type { Song, Playlist } from '@/types';
 import { Input } from '@/components/ui/input';
 import withAuth from '@/components/with-auth';
 import ProtectedLayout from '@/components/protected-layout';
+import { useAuth } from '@/context/auth-context';
+import { Badge } from '@/components/ui/badge';
 
 function PlaylistPage() {
   const params = useParams();
   const id = params.id as string;
   const { playSong } = useMusicPlayer();
   const { toast } = useToast();
+  const { userProfile } = useAuth();
+  const router = useRouter();
 
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
@@ -61,8 +65,21 @@ function PlaylistPage() {
 
     fetchData();
   }, [id]);
+
+  const handleUpgrade = () => {
+    router.push('/settings');
+  };
   
   const handlePlay = (song: Song) => {
+    if (song.isPremium && !userProfile?.isPremium) {
+      toast({
+        title: "Upgrade to Premium",
+        description: "This song is only available to premium users.",
+        variant: "destructive",
+        action: <Button onClick={handleUpgrade}>Upgrade</Button>,
+      });
+      return;
+    }
     playSong(song, songs);
   };
   
@@ -185,7 +202,10 @@ function PlaylistPage() {
                   <div className="col-span-5 flex items-center gap-4">
                      <Image src={song.albumArt} alt={song.title} width={40} height={40} className="rounded"/>
                      <div>
-                       <p className="font-semibold cursor-pointer" onClick={() => handlePlay(song)}>{song.title}</p>
+                       <div className="flex items-center gap-2">
+                         <p className="font-semibold cursor-pointer" onClick={() => handlePlay(song)}>{song.title}</p>
+                         {song.isPremium && !userProfile?.isPremium && <Badge variant="destructive" className="h-5">Premium</Badge>}
+                       </div>
                        <p className="text-sm text-muted-foreground">{song.artist}</p>
                      </div>
                   </div>
