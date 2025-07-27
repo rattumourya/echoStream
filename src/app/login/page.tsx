@@ -49,6 +49,11 @@ export default function LoginPage() {
     try {
       if (isSignUp) {
         // Sign Up
+        if (!data.name) {
+            form.setError("name", { type: "manual", message: "Name is required for sign up." });
+            setLoading(false);
+            return;
+        }
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         if (userCredential.user) {
           await updateProfile(userCredential.user, {
