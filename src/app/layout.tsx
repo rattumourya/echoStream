@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
+import { MusicPlayerProvider } from '@/context/music-player-context';
+import { PlaylistProvider } from '@/context/playlist-context';
 
 
 export const metadata: Metadata = {
@@ -25,8 +27,12 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
-          {children}
-          <Toaster />
+          <MusicPlayerProvider>
+            <PlaylistProvider>
+              {children}
+              <Toaster />
+            </PlaylistProvider>
+          </MusicPlayerProvider>
         </AuthProvider>
       </body>
     </html>
