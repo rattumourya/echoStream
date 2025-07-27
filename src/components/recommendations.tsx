@@ -59,7 +59,6 @@ export default function Recommendations() {
       }
     } catch (error) {
       console.error('Failed to get recommendations:', error);
-      // Handle error display to user if necessary
     } finally {
       setLoading(false);
     }
