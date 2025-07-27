@@ -5,20 +5,22 @@ EchoStream is a modern, web-based music streaming application designed to provid
 ## ✨ Features
 
 - **Secure Authentication**: Robust Email/Password sign-up and sign-in flow. The application is protected, requiring users to log in before accessing any features.
-- **Core Music Playback**: Browse and play songs, albums, and playlists with a persistent player.
+- **Persistent Music Playback**: Browse and play songs with a persistent player that continues to play seamlessly across page navigations.
+- **Premium Content Tier**: Differentiates between free and premium songs, restricting access for non-premium users with clear upgrade prompts.
 - **Playlist Management**: Create, view, and manage your own custom playlists. Add or remove songs with ease.
 - **AI Recommendations**: Get personalized song suggestions based on your listening history, time of day, and day of the week, powered by Google's Generative AI.
 - **Search**: Quickly find songs, artists, and albums within the library.
 - **Responsive UI**: A sleek, dark-mode interface that works seamlessly across desktop and mobile devices.
-- **Real-time State Sync**: Playlists created or deleted in the library are instantly reflected in the sidebar thanks to a shared React Context.
+- **Real-time State Sync**: Playlists created or deleted are instantly reflected across the app thanks to a shared React Context.
+- **Personalized Avatars**: User avatars default to their initials if no profile picture is set.
 
 ## 🛠️ Tech Stack
 
 - **Framework**: [Next.js](https://nextjs.org/) (with App Router)
 - **UI**: [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/), [ShadCN UI](https://ui.shadcn.com/)
+- **State Management**: React Context API
 - **AI**: [Google AI & Genkit](https://firebase.google.com/docs/genkit)
 - **Backend & Database**: [Firebase](https://firebase.google.com/) (Firestore for database, Firebase Authentication for users)
-- **State Management**: React Context API
 
 ## 🚀 Getting Started
 
@@ -44,7 +46,7 @@ EchoStream is a modern, web-based music streaming application designed to provid
 3.  **Set up Firebase:**
     - Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/).
     - In the "Authentication" section, go to the "Sign-in method" tab and **enable the Email/Password** provider.
-    - In the "Build" -> "Firestore Database" section, create a database. You can start in **test mode** for initial development, which allows open read/write access.
+    - In the "Build" -> "Firestore Database" section, create a database. You can start in **test mode** for initial development, which allows open read/write access. For production, you would configure security rules.
     - Go to your Project Settings (click the gear icon) and add a new **Web App**.
     - Copy the `firebaseConfig` object provided.
     - Paste this configuration into the `src/lib/firebase.ts` file, replacing the existing placeholder config.
