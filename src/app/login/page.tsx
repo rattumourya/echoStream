@@ -4,105 +4,68 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithPhoneNumber,
-  ConfirmationResult,
-  RecaptchaVerifier,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Chrome, ShieldAlert } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
-declare global {
-    interface Window {
-        confirmationResult?: ConfirmationResult;
-        recaptchaVerifier?: RecaptchaVerifier;
-    }
-}
+const formSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().email({ message: 'Please enter a valid email.' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+    },
+  });
 
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
+  const onSubmit = async (data: FormValues) => {
+    setLoading(true);
     try {
-      await signInWithPopup(auth, provider);
-      router.push('/');
-    } catch (error) {
-      console.error('Error during Google sign-in:', error);
-      toast({
-        title: 'Google Sign-In Failed',
-        description: 'Could not sign in with Google. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const setupRecaptcha = () => {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            'size': 'invisible',
-            'callback': (response: any) => {
-                // reCAPTCHA solved, allow signInWithPhoneNumber.
-            }
-        });
+      if (isSignUp) {
+        // Sign Up
+        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        if (userCredential.user) {
+          await updateProfile(userCredential.user, {
+            displayName: data.name,
+          });
+        }
+        toast({ title: 'Account Created!', description: 'You have been successfully signed up.' });
+      } else {
+        // Sign In
+        await signInWithEmailAndPassword(auth, data.email, data.password);
+        toast({ title: 'Signed In!', description: 'Welcome back.' });
       }
-      return window.recaptchaVerifier;
-  }
-
-  const handlePhoneSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const recaptchaVerifier = setupRecaptcha();
-      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
-      window.confirmationResult = confirmationResult;
-      setOtpSent(true);
-      toast({ title: 'OTP Sent!', description: 'Please check your phone for the verification code.' });
-    } catch (error) {
-      console.error('Error sending OTP:', error);
-      toast({
-        title: 'Failed to Send OTP',
-        description: 'Please check the phone number and use the test credentials.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    if (!window.confirmationResult) {
-        toast({ title: 'Error', description: 'Please request an OTP first.', variant: 'destructive'});
-        setLoading(false);
-        return;
-    }
-
-    try {
-      await window.confirmationResult.confirm(otp);
       router.push('/');
-    } catch (error) {
-      console.error('Error verifying OTP:', error);
+    } catch (error: any) {
+      console.error('Authentication error:', error);
       toast({
-        title: 'Invalid OTP',
-        description: 'The OTP you entered is incorrect. Please try again.',
+        title: 'Authentication Failed',
+        description: error.message || 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -118,67 +81,74 @@ export default function LoginPage() {
                 <AppLogo className="h-10 w-10 text-primary" />
                 <h1 className="text-3xl font-bold font-headline">EchoStream</h1>
             </div>
-          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-          <CardDescription>Sign in to access your personalized library.</CardDescription>
+          <CardTitle className="text-2xl font-bold">{isSignUp ? 'Create an Account' : 'Welcome Back'}</CardTitle>
+          <CardDescription>
+            {isSignUp ? 'Enter your details to get started.' : 'Sign in to access your personalized library.'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="phone">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="phone">Phone</TabsTrigger>
-              <TabsTrigger value="google">Google</TabsTrigger>
-            </TabsList>
-            <TabsContent value="phone" className="space-y-4 pt-4">
-              {!otpSent ? (
-                <form onSubmit={handlePhoneSignIn} className="space-y-4">
-                   <Alert>
-                    <ShieldAlert className="h-4 w-4" />
-                    <AlertTitle>For Development Only</AlertTitle>
-                    <AlertDescription>
-                      Use a test number like <b className="font-mono">+1 650-555-3434</b> with the OTP <b className="font-mono">123456</b>.
-                    </AlertDescription>
-                  </Alert>
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+1 123 456 7890"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'Sending...' : 'Send OTP'}
-                  </Button>
-                </form>
-              ) : (
-                <form onSubmit={handleOtpSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="otp">Verification Code</Label>
-                    <Input
-                      id="otp"
-                      type="text"
-                      placeholder="123456"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'Verifying...' : 'Verify OTP'}
-                  </Button>
-                </form>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {isSignUp && (
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your Name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-               <div id="recaptcha-container"></div>
-            </TabsContent>
-            <TabsContent value="google" className="pt-4">
-              <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
-                <Chrome className="mr-2 h-5 w-5" />
-                Sign in with Google
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="user@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Sign In')}
               </Button>
-            </TabsContent>
-          </Tabs>
+            </form>
+          </Form>
+
+          <div className="mt-4 text-center text-sm">
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+            <Button
+              variant="link"
+              className="pl-1"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                form.reset();
+              }}
+            >
+              {isSignUp ? 'Sign In' : 'Sign Up'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
