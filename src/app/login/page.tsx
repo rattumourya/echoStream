@@ -62,10 +62,16 @@ export default function LoginPage() {
       }
       router.push('/');
     } catch (error: any) {
-      console.error('Authentication error:', error);
+      console.error('Authentication error:', error.code, error.message);
+      let description = 'An unexpected error occurred. Please try again.';
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+        description = 'Incorrect email or password. Please try again or sign up.';
+      } else if (error.code === 'auth/email-already-in-use') {
+        description = 'This email is already registered. Please sign in instead.';
+      }
       toast({
         title: 'Authentication Failed',
-        description: error.message || 'An unexpected error occurred. Please try again.',
+        description,
         variant: 'destructive',
       });
     } finally {
