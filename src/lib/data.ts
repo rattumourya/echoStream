@@ -1,5 +1,5 @@
 
-import { collection, getDocs, doc, getDoc, updateDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Song, Artist, Album, Playlist } from '@/types';
 
@@ -34,13 +34,10 @@ export const songs: Song[] = [
     { id: '12', title: 'Dunes', artist: 'Stella Wave', album: 'Mirage', duration: '3:50', albumArt: 'https://placehold.co/600x600.png', url: 'https://www.bensound.com/bensound-music/bensound-summer.mp3', "data-ai-hint": 'desert dunes', isPremium: true },
 ];
 
-export const playlists: Playlist[] = [
-    { id: '1', title: 'Chill Vibes', description: 'Relax and unwind with these laid-back tracks.', coverArt: 'https://placehold.co/600x600.png', "data-ai-hint": 'coffee shop', songIds: ['3', '7', '11'] },
-    { id: '2', title: 'Focus Flow', description: 'Instrumental tracks to help you concentrate.', coverArt: 'https://placehold.co/600x600.png', "data-ai-hint": 'library books', songIds: ['2', '8', '10'] },
-    { id: '3', title: 'Workout Hits', description: 'High-energy tracks to power your workout.', coverArt: 'https://placehold.co/600x600.png', "data-ai-hint": 'gym weights', songIds: ['4', '6', '9'] },
-    { id: '4', title: 'Late Night Drive', description: 'Synthwave and electronic beats for the open road.', coverArt: 'https://placehold.co/600x600.png', "data-ai-hint": 'night road', songIds: ['5', '6', '10'] },
-    { id: '5', title: 'Indie Discovery', description: 'Fresh tracks from emerging artists.', coverArt: 'https://placehold.co/600x600.png', "data-ai-hint": 'guitar case', songIds: ['1', '4', '12'] },
-    { id: '6', title: 'Acoustic Morning', description: 'Gentle acoustic songs to start your day.', coverArt: 'https://placehold.co/600x600.png', "data-ai-hint": 'morning coffee', songIds: ['3', '7', '11'] },
+// Seed data for playlists, now without user association.
+export const staticPlaylists: Omit<Playlist, 'id' | 'userId'>[] = [
+    { title: 'Chill Vibes', description: 'Relax and unwind with these laid-back tracks.', coverArt: 'https://placehold.co/600x600.png', "data-ai-hint": 'coffee shop', songIds: ['3', '7', '11'] },
+    { title: 'Focus Flow', description: 'Instrumental tracks to help you concentrate.', coverArt: 'https://placehold.co/600x600.png', "data-ai-hint": 'library books', songIds: ['2', '8', '10'] },
 ];
 
 export async function getArtists(): Promise<Artist[]> {
@@ -72,26 +69,34 @@ export async function getSongs(): Promise<Song[]> {
     return songs;
 }
 
-export async function getPlaylists(): Promise<Playlist[]> {
+export async function getPlaylists(userId: string): Promise<Playlist[]> {
+    if (!userId) {
+        return [];
+    }
+
     try {
         const playlistsCol = collection(db, 'playlists');
-        const playlistSnapshot = await getDocs(playlistsCol);
-        if (!playlistSnapshot.empty) {
-            return playlistSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Playlist));
+        const q = query(playlistsCol, where("userId", "==", userId));
+        const playlistSnapshot = await getDocs(q);
+        
+        const userPlaylists = playlistSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Playlist));
+        
+        // Seed initial playlists for a new user if they have none.
+        if (userPlaylists.length === 0) {
+            for (const p of staticPlaylists) {
+                await addDoc(playlistsCol, { ...p, userId: userId });
+            }
+            // Fetch again after seeding
+            const seededSnapshot = await getDocs(q);
+            return seededSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Playlist));
         }
+
+        return userPlaylists;
+
     } catch (error) {
         console.error("Error fetching playlists from Firestore:", error);
+        return []; // Return empty array on error
     }
-    // If Firestore is empty or errors out, populate with static data.
-    // This is also a good place to seed the database for the first time.
-    for (const playlist of playlists) {
-        const playlistDocRef = doc(db, 'playlists', playlist.id);
-        const playlistDoc = await getDoc(playlistDocRef);
-        if (!playlistDoc.exists()) {
-            await setDoc(playlistDocRef, playlist);
-        }
-    }
-    return playlists;
 }
 
 export async function getPlaylistById(id: string): Promise<Playlist | null> {
@@ -102,35 +107,18 @@ export async function getPlaylistById(id: string): Promise<Playlist | null> {
         if (playlistDocSnap.exists()) {
             return { id: playlistDocSnap.id, ...playlistDocSnap.data() } as Playlist;
         } else {
-             console.warn(`Playlist with id ${id} not found in Firestore, falling back to static data.`);
-             const staticPlaylist = playlists.find(p => p.id === id);
-             return staticPlaylist || null;
+             console.warn(`Playlist with id ${id} not found in Firestore.`);
+             return null;
         }
     } catch (error) {
         console.error("Error fetching playlist from Firestore:", error);
-        const staticPlaylist = playlists.find(p => p.id === id);
-        return staticPlaylist || null;
+        return null;
     }
 }
 
 export async function updatePlaylistSongs(playlistId: string, songIds: string[]): Promise<void> {
     const playlistDocRef = doc(db, 'playlists', playlistId);
-    try {
-        const playlistDocSnap = await getDoc(playlistDocRef);
-        if (!playlistDocSnap.exists()) {
-            const staticPlaylist = playlists.find(p => p.id === playlistId);
-            if (staticPlaylist) {
-                await setDoc(playlistDocRef, { ...staticPlaylist, songIds });
-            } else {
-                throw new Error(`Playlist with id ${playlistId} not found in static data.`);
-            }
-        } else {
-             await updateDoc(playlistDocRef, { songIds });
-        }
-    } catch(e) {
-        console.error(`Failed to update playlist ${playlistId}`, e);
-        throw e;
-    }
+    await updateDoc(playlistDocRef, { songIds });
 }
 
 export async function deletePlaylist(playlistId: string): Promise<void> {

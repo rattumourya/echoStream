@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Playlist } from '@/types';
@@ -26,7 +27,7 @@ export const PlaylistProvider = ({ children }: { children: ReactNode }) => {
     };
     setLoading(true);
     try {
-      const playlistData = await fetchPlaylists();
+      const playlistData = await fetchPlaylists(user.uid);
       setPlaylists(playlistData);
     } catch (error) {
       console.error("Failed to fetch playlists:", error);
@@ -37,8 +38,11 @@ export const PlaylistProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   useEffect(() => {
-    refreshPlaylists();
-  }, [refreshPlaylists]);
+    // Initial fetch when user object becomes available
+    if (user) {
+      refreshPlaylists();
+    }
+  }, [user, refreshPlaylists]);
 
   const value = { playlists, loading, refreshPlaylists };
 

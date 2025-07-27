@@ -40,6 +40,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { usePlaylists } from '@/context/playlist-context';
+import { useAuth } from '@/context/auth-context';
 import withAuth from '@/components/with-auth';
 import ProtectedLayout from '@/components/protected-layout';
 
@@ -53,6 +54,7 @@ type PlaylistFormValues = z.infer<typeof playlistFormSchema>;
 function LibraryPage() {
   const [open, setOpen] = useState(false);
   const { playlists, loading: playlistsLoading, refreshPlaylists } = usePlaylists();
+  const { user } = useAuth();
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loadingAlbums, setLoadingAlbums] = useState(true);
   const { toast } = useToast();
@@ -79,12 +81,18 @@ function LibraryPage() {
   }, []);
 
   async function onSubmit(data: PlaylistFormValues) {
+    if (!user) {
+        toast({ title: 'Authentication Error', description: 'You must be logged in to create a playlist.', variant: 'destructive' });
+        return;
+    }
+
     try {
       const newPlaylistData = {
         title: data.title,
         description: data.description || '',
         coverArt: 'https://placehold.co/600x600.png',
         songIds: [],
+        userId: user.uid,
       };
       
       await addDoc(collection(db, "playlists"), newPlaylistData);
@@ -206,7 +214,7 @@ function LibraryPage() {
                       </div>
                   ))}
               </div>
-            ) : (
+            ) : playlists.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {playlists.map((playlist) => (
                   <div key={playlist.id} className="relative group/card">
@@ -233,6 +241,10 @@ function LibraryPage() {
                   </div>
                 ))}
               </div>
+            ) : (
+                <div className="text-center py-16 text-muted-foreground">
+                    <p>No playlists yet. Create one to get started!</p>
+                </div>
             )}
           </TabsContent>
           <TabsContent value="albums" className="mt-6">

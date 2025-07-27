@@ -25,6 +25,7 @@ export interface Album {
 
 export interface Playlist {
   id: string;
+  userId: string;
   title: string;
   description: string;
   coverArt: string;
