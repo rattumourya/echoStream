@@ -4,19 +4,20 @@ EchoStream is a modern, web-based music streaming application designed to provid
 
 ## ✨ Features
 
+- **Secure Authentication**: Robust Email/Password sign-up and sign-in flow. The application is protected, requiring users to log in before accessing any features.
 - **Core Music Playback**: Browse and play songs, albums, and playlists with a persistent player.
 - **Playlist Management**: Create, view, and manage your own custom playlists. Add or remove songs with ease.
 - **AI Recommendations**: Get personalized song suggestions based on your listening history, time of day, and day of the week, powered by Google's Generative AI.
 - **Search**: Quickly find songs, artists, and albums within the library.
 - **Responsive UI**: A sleek, dark-mode interface that works seamlessly across desktop and mobile devices.
-- **Real-time Updates**: Playlists are synced in real-time across the application using a shared state context.
+- **Real-time State Sync**: Playlists created or deleted in the library are instantly reflected in the sidebar thanks to a shared React Context.
 
 ## 🛠️ Tech Stack
 
 - **Framework**: [Next.js](https://nextjs.org/) (with App Router)
 - **UI**: [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/), [ShadCN UI](https://ui.shadcn.com/)
 - **AI**: [Google AI & Genkit](https://firebase.google.com/docs/genkit)
-- **Backend & Database**: [Firebase](https://firebase.google.com/) (Firestore for database)
+- **Backend & Database**: [Firebase](https://firebase.google.com/) (Firestore for database, Firebase Authentication for users)
 - **State Management**: React Context API
 
 ## 🚀 Getting Started
@@ -25,6 +26,7 @@ EchoStream is a modern, web-based music streaming application designed to provid
 
 - Node.js (v18 or later)
 - npm or yarn
+- A Firebase Project
 
 ### Installation & Setup
 
@@ -41,9 +43,11 @@ EchoStream is a modern, web-based music streaming application designed to provid
 
 3.  **Set up Firebase:**
     - Create a Firebase project in the [Firebase Console](https://console.firebase.google.com/).
-    - Add a new Web App to your project.
-    - Copy the Firebase configuration object and paste it into `src/lib/firebase.ts`.
-    - In Firestore, enable the database. You can start in test mode for initial development. The app will automatically seed initial data if the collections are empty.
+    - In the "Authentication" section, go to the "Sign-in method" tab and **enable the Email/Password** provider.
+    - In the "Build" -> "Firestore Database" section, create a database. You can start in **test mode** for initial development, which allows open read/write access.
+    - Go to your Project Settings (click the gear icon) and add a new **Web App**.
+    - Copy the `firebaseConfig` object provided.
+    - Paste this configuration into the `src/lib/firebase.ts` file, replacing the existing placeholder config.
 
 4.  **Set up Environment Variables:**
     - Create a `.env` file in the root of the project.
@@ -51,29 +55,25 @@ EchoStream is a modern, web-based music streaming application designed to provid
       ```
       GEMINI_API_KEY=your_google_ai_api_key
       ```
+    - *Note: If you don't have a key, the AI recommendation feature will not work, but the rest of the app will.*
 
 ### Running the Application
 
-- **Development Server:** To run the app in development mode with live reloading.
-  ```bash
-  npm run dev
-  ```
-  The application will be available at `http://localhost:9002`.
+The application requires two separate processes to run concurrently in development.
 
-- **Genkit Server (for AI features):** To run the Genkit flows for AI recommendations.
-  ```bash
-  npm run genkit:dev
-  ```
+1.  **Run the Next.js Frontend:**
+    - This serves the main application on `http://localhost:9002`.
+    ```bash
+    npm run dev
+    ```
 
-- **Build for Production:**
-  ```bash
-  npm run build
-  ```
+2.  **Run the Genkit Server (for AI features):**
+    - In a **separate terminal**, run this command to start the local server for AI flows.
+    ```bash
+    npm run genkit:dev
+    ```
 
-- **Start Production Server:**
-  ```bash
-  npm run start
-  ```
+Once both are running, you can access the application at `http://localhost:9002`. The app will automatically seed initial data to Firestore if the collections are empty on first run.
 
 ## 📄 Project Documentation
 
