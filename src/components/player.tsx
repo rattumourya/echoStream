@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Slider } from './ui/slider';
 import { Button } from './ui/button';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -31,90 +31,39 @@ export default function Player() {
     playPrevious,
     queue,
     playSong,
+    currentTime,
+    duration,
+    seek,
+    volume,
+    setVolume,
   } = useMusicPlayer();
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [volume, setVolume] = useState(0.5);
   const [lastVolume, setLastVolume] = useState(0.5);
 
   const handleUpgrade = () => {
     router.push('/settings');
   };
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (currentSong?.isPremium && !userProfile?.isPremium) {
-      toast({
-        title: "Upgrade to Premium",
-        description: "This song is only available to premium users.",
-        variant: "destructive",
-        action: <Button onClick={handleUpgrade}>Upgrade</Button>,
-      });
-      audio.pause();
-      return;
-    }
-
-    const setAudioData = () => {
-      setDuration(audio.duration);
-    };
-    const setAudioTime = () => {
-      setCurrentTime(audio.currentTime);
-      if (audio.duration > 0) {
-        setProgress((audio.currentTime / audio.duration) * 100);
-      } else {
-        setProgress(0);
+  const handlePlayAttempt = (song: Song, queue: Song[]) => {
+      if (song.isPremium && !userProfile?.isPremium) {
+          toast({
+              title: "Upgrade to Premium",
+              description: "This song is only available to premium users.",
+              variant: "destructive",
+              action: <Button onClick={handleUpgrade}>Upgrade</Button>,
+          });
+          return;
       }
-    };
-    const handleEnded = () => {
-        playNext();
-    }
-
-    if(currentSong) {
-        if (audio.src !== currentSong.url) {
-            audio.src = currentSong.url;
-            audio.load();
-        }
-
-        if(isPlaying) {
-             audio.play().catch(e => console.error("Error playing audio:", e));
-        } else {
-            audio.pause();
-        }
-    } else {
-        audio.pause();
-    }
-
-    audio.addEventListener('loadeddata', setAudioData);
-    audio.addEventListener('timeupdate', setAudioTime);
-    audio.addEventListener('ended', handleEnded);
-
-    return () => {
-      audio.removeEventListener('loadeddata', setAudioData);
-      audio.removeEventListener('timeupdate', setAudioTime);
-      audio.removeEventListener('ended', handleEnded);
-    };
-  }, [currentSong, isPlaying, playNext, userProfile, toast]);
-  
-  useEffect(() => {
-    if (audioRef.current) {
-        audioRef.current.volume = volume;
-    }
-  }, [volume]);
-
+      playSong(song, queue);
+  }
 
   const handleProgressChange = (value: number[]) => {
-    if (audioRef.current && duration > 0) {
-        const newTime = (value[0] / 100) * duration;
-        audioRef.current.currentTime = newTime;
-        setCurrentTime(newTime);
+    if (duration > 0) {
+      const newTime = (value[0] / 100) * duration;
+      seek(newTime);
     }
   }
 
@@ -140,6 +89,7 @@ export default function Player() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   if (!currentSong) {
     return (
@@ -153,7 +103,6 @@ export default function Player() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 h-24 border-t bg-background/95 backdrop-blur-sm">
-      <audio ref={audioRef} />
       <div className="grid h-full grid-cols-[1fr_2fr_1fr] items-center px-4 md:px-6">
         <div className="flex items-center gap-4">
           <Image
@@ -219,7 +168,7 @@ export default function Player() {
                           "flex items-center gap-4 rounded-md p-2 cursor-pointer hover:bg-muted",
                           song.id === currentSong?.id && "bg-muted/50"
                         )}
-                        onClick={() => playSong(song, queue)}
+                        onClick={() => handlePlayAttempt(song, queue)}
                       >
                         <Image
                           src={song.albumArt}
